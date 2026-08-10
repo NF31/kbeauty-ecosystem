@@ -3,8 +3,11 @@
 Infrastructure commune (Docker Compose) pour les microservices de montee en competence
 lies au projet Kbeauty (voir le repo principal kbeauty-shop, dossier docs/montee-competence/).
 
-Ne contient pas de code applicatif : chaque microservice (Spring Boot, Scrapy, Next.js)
-vit dans son propre repo, clone a cote de celui-ci sous ~/projects/.
+Ne contient pas de code applicatif : chaque microservice (Spring Boot, Scrapy)
+vit dans son propre repo, clone a cote de celui-ci sous ~/projects/. Un pont
+Next.js avait ete envisage au depart pour la page diagnostic, mais abandonne
+des la Phase 3 au profit d'Inertia (integre au monolithe Laravel) - jamais
+cree, voir kbeauty-shop/docs/montee-competence/09-phase3-diagnostic-inertia.md.
 
 ## Services
 
