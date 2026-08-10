@@ -24,3 +24,10 @@ docker compose ps -a              # etat des conteneurs
 **Attention memoire** : cassandra et sonarqube sont bases sur la JVM et consomment
 2-4 Go de RAM chacun. Sur une VM WSL a RAM limitee, ne les laisser actifs que
 lorsqu'ils sont utilises (Phase 4 pour cassandra, scan qualite pour sonarqube).
+
+**Piege reseau (trouve le 2026-08-10)** : pour joindre un conteneur depuis un
+autre conteneur sur `kbeauty_network`, utiliser le nom du **service** Compose
+(ex. `sonarqube`, `cassandra`), pas le `container_name` (ex. `kbeauty_sonarqube`).
+Les `container_name` de ce fichier contiennent un underscore, invalide dans un
+en-tete HTTP `Host` strict (RFC 952/1123) — des serveurs comme Tomcat
+(SonarQube) rejettent la requete en `400 Bad Request` sans message clair.
