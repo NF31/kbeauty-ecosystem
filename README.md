@@ -34,3 +34,17 @@ autre conteneur sur `kbeauty_network`, utiliser le nom du **service** Compose
 Les `container_name` de ce fichier contiennent un underscore, invalide dans un
 en-tete HTTP `Host` strict (RFC 952/1123) — des serveurs comme Tomcat
 (SonarQube) rejettent la requete en `400 Bad Request` sans message clair.
+
+## Scan de secrets (gitleaks)
+
+Garde-fou contre le commit accidentel de clés API / tokens.
+
+```bash
+# Une fois par clone :
+git config core.hooksPath .githooks
+```
+
+Le hook `pre-commit` lance `gitleaks git --staged` et bloque le commit si un
+secret est détecté (`git commit --no-verify` pour forcer). Même scan en CI sur
+chaque push / PR (`.github/workflows/gitleaks.yml`), sur l'historique complet.
+Faux positifs éventuels à déclarer dans `.gitleaks.toml`.
