@@ -1,0 +1,13 @@
+# Config gitleaks — scan de secrets (clés API, tokens) dans les commits.
+# Doc : https://github.com/gitleaks/gitleaks#configuration
+
+title = "kbeauty-ecosystem"
+
+[extend]
+# Repart des ~150 règles intégrées de gitleaks, on ne fait qu'ajouter par-dessus.
+useDefault = true
+
+# Pour ignorer un faux positif, ajouter ici (chemins = regex) :
+# [allowlist]
+# description = "..."
+# paths = ['''tests/fixtures/.*''']
