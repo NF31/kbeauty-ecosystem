@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Bloque un commit qui introduit un secret (clé API, token...).
+# Activation (une fois par clone) : git config core.hooksPath .githooks
+# Contournement ponctuel : git commit --no-verify
+set -euo pipefail
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "gitleaks introuvable — installe-le (https://github.com/gitleaks/gitleaks) ou commit avec --no-verify" >&2
+  exit 0
+fi
+
+gitleaks git --staged --redact --no-banner
