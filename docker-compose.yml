@@ -1,9 +1,9 @@
 services:
   cassandra:
-    image: cassandra:latest
+    image: cassandra:5.0
     container_name: kbeauty_cassandra
     ports:
-      - "9042:9042"
+      - "127.0.0.1:9042:9042"
     volumes:
       - cassandra_data:/var/lib/cassandra
     environment:
@@ -15,20 +15,21 @@ services:
     image: rabbitmq:3-management-alpine
     container_name: kbeauty_rabbitmq
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - kbeauty_network
 
   valkey:
-    image: bitnami/valkey:latest
+    image: bitnami/valkey:8.1
     container_name: kbeauty_valkey
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     environment:
-      - ALLOW_EMPTY_PASSWORD=yes
+      - ALLOW_EMPTY_PASSWORD=no
+      - VALKEY_PASSWORD=${VALKEY_PASSWORD:?Set VALKEY_PASSWORD before starting the stack}
     volumes:
       - valkey_data:/bitnami/valkey/data
     networks:
@@ -38,7 +39,7 @@ services:
     image: sonarqube:community
     container_name: kbeauty_sonarqube
     ports:
-      - "9000:9000"
+      - "127.0.0.1:9000:9000"
     volumes:
       - sonarqube_data:/opt/sonarqube/data
       - sonarqube_extensions:/opt/sonarqube/extensions
