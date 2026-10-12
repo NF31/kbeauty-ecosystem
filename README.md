@@ -16,6 +16,28 @@ cree, voir kbeauty-shop/docs/montee-competence/09-phase3-diagnostic-inertia.md.
 - **valkey** (:6379) : cache/queue compatible Redis
 - **sonarqube** (:9000) : qualimetrie de code
 
+## Comptes RabbitMQ (moindre privilege)
+
+```bash
+./rabbitmq/creer-comptes.sh   # rejouable
+```
+
+Cree l'exchange commun `kbeauty.exchange` et un compte par application,
+avec seulement les droits dont elle a besoin :
+
+- `kbeauty_shop` : publie sur `kbeauty.exchange` (demandes de retour vers le
+  SAV), consomme `diagnostic.created` ;
+- `sav` (sav-ticketing-php) : possede ses files `sav.retours` et
+  `sav.retours.rejetes`, ne peut ni publier sur `kbeauty.exchange` ni le
+  supprimer.
+
+Mots de passe de developpement par defaut, a fournir en variables
+d'environnement en production (voir l'en-tete du script). Integration
+detaillee : `kbeauty-shop/docs/montee-competence/20-integration-sav-rabbitmq.md`.
+
+`guest` (droits complets) sert encore a kbeauty-ai-core-service : lui creer
+un compte limite, puis supprimer `guest`.
+
 ## Usage
 
 ```bash
