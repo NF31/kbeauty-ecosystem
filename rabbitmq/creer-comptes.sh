@@ -48,3 +48,12 @@ compte sav "${SAV_RABBITMQ_PASSWORD:-sav}" \
     '^sav\.retours(\.rejetes)?$' \
     '^sav\.retours(\.rejetes)?$' \
     '^(kbeauty\.exchange|sav\.retours(\.rejetes)?)$'
+
+# kbeauty-notifications-service : possede sa file notifications.newsletter
+# et son exchange/file de rejets notifications.rejetees, lit kbeauty.exchange
+# (pour y lier sa file). Ne peut ni publier sur kbeauty.exchange ni le
+# supprimer, ni lire les autres files (meme principe que sav).
+compte notifications "${NOTIFICATIONS_RABBITMQ_PASSWORD:-notifications}" \
+    '^notifications\.(newsletter|rejetees)$' \
+    '^notifications\.(newsletter|rejetees)$' \
+    '^(kbeauty\.exchange|notifications\.(newsletter|rejetees))$'
