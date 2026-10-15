@@ -3,8 +3,9 @@
 Infrastructure commune (Docker Compose) pour les microservices de montee en competence
 lies au projet Kbeauty (voir le repo principal kbeauty-shop, dossier docs/montee-competence/).
 
-Ne contient pas de code applicatif : chaque microservice (Spring Boot, Scrapy)
-vit dans son propre repo, clone a cote de celui-ci sous ~/projects/. Un pont
+Ne contient pas de code applicatif : chaque microservice (Spring Boot, Scrapy,
+PHP natif, NestJS, Go) vit dans son propre repo, clone a cote de celui-ci sous
+~/projects/. Un pont
 Next.js avait ete envisage au depart pour la page diagnostic, mais abandonne
 des la Phase 3 au profit d'Inertia (integre au monolithe Laravel) - jamais
 cree, voir kbeauty-shop/docs/montee-competence/09-phase3-diagnostic-inertia.md.
@@ -25,15 +26,22 @@ cree, voir kbeauty-shop/docs/montee-competence/09-phase3-diagnostic-inertia.md.
 Cree l'exchange commun `kbeauty.exchange` et un compte par application,
 avec seulement les droits dont elle a besoin :
 
-- `kbeauty_shop` : publie sur `kbeauty.exchange` (demandes de retour vers le
-  SAV), consomme `diagnostic.created` ;
-- `sav` (sav-ticketing-php) : possede ses files `sav.retours` et
-  `sav.retours.rejetes`, ne peut ni publier sur `kbeauty.exchange` ni le
-  supprimer.
+- `kbeauty_shop` : publie sur `kbeauty.exchange` (retours, newsletter,
+  changement d'identite client), consomme `diagnostic.created` ;
+- `sav` (sav-ticketing-php) : possede ses files `sav.retours`, `sav.clients`
+  et leurs files de rejets associees, lit `kbeauty.exchange` (pour y lier
+  ses files) ; ne peut ni publier sur `kbeauty.exchange` ni le supprimer ;
+- `notifications` (kbeauty-notifications-service) : possede sa file
+  `notifications.newsletter` et sa file de rejets, meme principe que `sav` ;
+- `mdm` (kbeauty-customer-mdm) : seul compte qui publie ET lit sur
+  `kbeauty.exchange` (il republie le golden record apres chaque mise a
+  jour), possede ses files `mdm.customer-updates` et `mdm.rejected`.
 
 Mots de passe de developpement par defaut, a fournir en variables
 d'environnement en production (voir l'en-tete du script). Integration
-detaillee : `kbeauty-shop/docs/montee-competence/20-integration-sav-rabbitmq.md`.
+detaillee : `kbeauty-shop/docs/montee-competence/20-integration-sav-rabbitmq.md`
+(SAV), `21-notifications-service.md` (notifications), `22-mdm-golden-record.md`
+(MDM).
 
 `guest` (droits complets) sert encore a kbeauty-ai-core-service : lui creer
 un compte limite, puis supprimer `guest`.
