@@ -45,9 +45,9 @@ compte kbeauty_shop "${KBEAUTY_SHOP_RABBITMQ_PASSWORD:-kbeauty_shop}" \
 # lit kbeauty.exchange (pour y lier sa file). Ne peut ni publier sur
 # kbeauty.exchange ni le supprimer, ni lire les autres files.
 compte sav "${SAV_RABBITMQ_PASSWORD:-sav}" \
-    '^sav\.retours(\.rejetes)?$' \
-    '^sav\.retours(\.rejetes)?$' \
-    '^(kbeauty\.exchange|sav\.retours(\.rejetes)?)$'
+    '^sav\.(retours|clients)(\.rejetes)?$' \
+    '^sav\.(retours|clients)(\.rejetes)?$' \
+    '^(kbeauty\.exchange|sav\.(retours|clients)(\.rejetes)?)$'
 
 # kbeauty-notifications-service : possede sa file notifications.newsletter
 # et son exchange/file de rejets notifications.rejetees, lit kbeauty.exchange
@@ -57,3 +57,13 @@ compte notifications "${NOTIFICATIONS_RABBITMQ_PASSWORD:-notifications}" \
     '^notifications\.(newsletter|rejetees)$' \
     '^notifications\.(newsletter|rejetees)$' \
     '^(kbeauty\.exchange|notifications\.(newsletter|rejetees))$'
+
+# kbeauty-customer-mdm : seul compte qui PUBLIE sur kbeauty.exchange en plus
+# d'y lire (il republie le golden record apres chaque mise a jour), d'ou un
+# profil de droits different des autres. Possede sa file mdm.customer-updates
+# et son exchange/file de rejets mdm.rejected. Ne peut ni supprimer
+# kbeauty.exchange, ni lire les files des autres applications.
+compte mdm "${MDM_RABBITMQ_PASSWORD:-mdm}" \
+    '^mdm\.(customer-updates|rejected)$' \
+    '^(kbeauty\.exchange|mdm\.(customer-updates|rejected))$' \
+    '^(kbeauty\.exchange|mdm\.(customer-updates|rejected))$'
