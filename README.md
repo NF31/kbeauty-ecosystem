@@ -65,6 +65,12 @@ Les `container_name` de ce fichier contiennent un underscore, invalide dans un
 en-tete HTTP `Host` strict (RFC 952/1123) — des serveurs comme Tomcat
 (SonarQube) rejettent la requete en `400 Bad Request` sans message clair.
 
+## Développement assisté par IA
+
+Ce projet est développé avec un assistant IA (Claude Code). Je définis le périmètre,
+l'architecture et les priorités, puis je relis et teste chaque changement avant de le
+fusionner. Les commits co-écrits avec l'IA le signalent par une ligne `Co-Authored-By`.
+
 ## Scan de secrets (gitleaks)
 
 Garde-fou contre le commit accidentel de clés API / tokens.
