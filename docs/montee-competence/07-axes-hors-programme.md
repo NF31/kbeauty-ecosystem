@@ -58,9 +58,9 @@ Complète le point 1 : au lieu d'une simple validation de schéma statique, un t
 
 | Axe | Effort | Valeur pédagogique | Priorité |
 | :--- | :--- | :--- | :--- |
-| 1. Contrat de données (schéma) | Faible | Élevée — comble un vrai trou du design event-driven actuel | 🔴 Haute |
-| 2. Circuit Breaker / Retry | Faible | Élevée — idem | 🔴 Haute |
-| 3. SSO / OIDC (Keycloak) | Moyen | Très visible en soutenance | 🟠 Moyenne |
-| 4. Observabilité distribuée (OpenTelemetry) | Moyen | Très visible en soutenance | 🟠 Moyenne |
-| 5. Infrastructure as Code (Terraform) | Élevé | Bonus DevOps | 🟢 Basse — si le temps le permet |
-| 6. Tests de contrat (Pact) | Élevé | Bonus qualité | 🟢 Basse — si le temps le permet |
+| 1. Contrat de données (schéma) | Faible | Élevée — comble un vrai trou du design event-driven actuel | Haute |
+| 2. Circuit Breaker / Retry | Faible | Élevée — idem | Haute |
+| 3. SSO / OIDC (Keycloak) | Moyen | Très visible en soutenance | Moyenne |
+| 4. Observabilité distribuée (OpenTelemetry) | Moyen | Très visible en soutenance | Moyenne |
+| 5. Infrastructure as Code (Terraform) | Élevé | Bonus DevOps | Basse — si le temps le permet |
+| 6. Tests de contrat (Pact) | Élevé | Bonus qualité | Basse — si le temps le permet |

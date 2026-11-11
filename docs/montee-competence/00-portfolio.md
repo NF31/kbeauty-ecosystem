@@ -25,13 +25,13 @@ RabbitMQ (`kbeauty-notifications-service`), un **service de référentiel client
 
 | Dépôt | Rôle | Stack | Statut | Hébergement |
 |---|---|---|---|---|
-| **`kbeauty-shop`** | Produit réel : catalogue, panier, checkout Stripe, back-office, page diagnostic | PHP 8.5 · Laravel 13 · Inertia · React · TypeScript · Tailwind v4 · PostgreSQL (Neon) · Redis · Horizon | 🟢 en production, ~108 features livrées | Laravel Cloud |
-| **`kbeauty-ai-core-service`** | Analyse vision de la photo de peau + matching vectoriel d'ingrédients | Java 21 · Spring Boot 3.4 · Hibernate/JPA · RabbitMQ · Resilience4j | 🟢 déployé en continu | Azure App Service (+ CloudAMQP pour RabbitMQ) |
-| **`kbeauty-ingredients-scraper`** | Extraction quotidienne de catalogues d'ingrédients INCI (sources publiques, `robots.txt` respecté) | Python 3.12 · Scrapy · cassandra-driver · pgvector | 🟢 conteneurisé, cron cloud | Azure Container Apps Jobs (registre : Azure Container Registry) |
-| **`sav-ticketing-php`** | Gestion de tickets SAV, retours boutique reçus via RabbitMQ | PHP 8.5 natif (sans framework) · MariaDB | 🟢 intégré ([doc 20](20-integration-sav-rabbitmq.md)), désactivé par défaut en prod | Railway envisagé (doc 20 §8), pas encore fait |
-| **`kbeauty-notifications-service`** | Envoi des notifications transactionnelles (email, puis SMS/push), découplé du monolithe | Node 24 · NestJS · `amqp-connection-manager`/`amqplib` · Ajv · `node:sqlite` · Resend | 🟢 intégré ([doc 21](21-notifications-service.md)), flux vérifié de bout en bout, désactivé par défaut en prod | Railway envisagé (doc 21 §7), pas encore fait |
-| **`kbeauty-customer-mdm`** | Référentiel client unique (golden record) : centralise les mises à jour d'identité client et les repousse aux systèmes avals | Go 1.27 · `amqp091-go` · `modernc.org/sqlite` · `jsonschema/v5` | 🟢 intégré ([doc 22](22-mdm-golden-record.md)), flux vérifié de bout en bout, désactivé par défaut en prod | Railway envisagé (doc 22 §7), pas encore fait |
-| **`kbeauty-ecosystem`** | `docker-compose` de l'infra locale mutualisée | RabbitMQ · Cassandra · SonarQube · Valkey | 🟢 utilisé pour le dev | WSL Ubuntu |
+| **`kbeauty-shop`** | Produit réel : catalogue, panier, checkout Stripe, back-office, page diagnostic | PHP 8.5 · Laravel 13 · Inertia · React · TypeScript · Tailwind v4 · PostgreSQL (Neon) · Redis · Horizon | en production, ~108 features livrées | Laravel Cloud |
+| **`kbeauty-ai-core-service`** | Analyse vision de la photo de peau + matching vectoriel d'ingrédients | Java 21 · Spring Boot 3.4 · Hibernate/JPA · RabbitMQ · Resilience4j | déployé en continu | Azure App Service (+ CloudAMQP pour RabbitMQ) |
+| **`kbeauty-ingredients-scraper`** | Extraction quotidienne de catalogues d'ingrédients INCI (sources publiques, `robots.txt` respecté) | Python 3.12 · Scrapy · cassandra-driver · pgvector | conteneurisé, cron cloud | Azure Container Apps Jobs (registre : Azure Container Registry) |
+| **`sav-ticketing-php`** | Gestion de tickets SAV, retours boutique reçus via RabbitMQ | PHP 8.5 natif (sans framework) · MariaDB | intégré ([doc 20](20-integration-sav-rabbitmq.md)), désactivé par défaut en prod | Railway envisagé (doc 20 §8), pas encore fait |
+| **`kbeauty-notifications-service`** | Envoi des notifications transactionnelles (email, puis SMS/push), découplé du monolithe | Node 24 · NestJS · `amqp-connection-manager`/`amqplib` · Ajv · `node:sqlite` · Resend | intégré ([doc 21](21-notifications-service.md)), flux vérifié de bout en bout, désactivé par défaut en prod | Railway envisagé (doc 21 §7), pas encore fait |
+| **`kbeauty-customer-mdm`** | Référentiel client unique (golden record) : centralise les mises à jour d'identité client et les repousse aux systèmes avals | Go 1.27 · `amqp091-go` · `modernc.org/sqlite` · `jsonschema/v5` | intégré ([doc 22](22-mdm-golden-record.md)), flux vérifié de bout en bout, désactivé par défaut en prod | Railway envisagé (doc 22 §7), pas encore fait |
+| **`kbeauty-ecosystem`** | `docker-compose` de l'infra locale mutualisée | RabbitMQ · Cassandra · SonarQube · Valkey | utilisé pour le dev | WSL Ubuntu |
 
 ## Comment ils se parlent
 

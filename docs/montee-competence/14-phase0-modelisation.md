@@ -37,9 +37,9 @@ dossier.
 
 | Besoin | Format | Extension | Rendu GitHub | Pourquoi |
 |---|---|---|---|---|
-| C4, séquence, classes | Mermaid dans le `.md` | `bierner.markdown-mermaid` *(preview locale ; GitHub rend nativement)* | ✅ natif | texte diffable, zéro binaire, revue en PR |
-| BPMN 2.0 | `.bpmn` (XML standard OMG) | `bpmn-io.vs-code-bpmn-io` | ❌ (aperçu dans l'IDE seulement) | vrai BPMN 2.0, importable Camunda Modeler / bizagi |
-| Retouche visuelle libre | `.drawio.svg` | `hediet.vscode-drawio` | ✅ (c'est un SVG) | si besoin d'un export image propre pour un rapport |
+| C4, séquence, classes | Mermaid dans le `.md` | `bierner.markdown-mermaid` *(preview locale ; GitHub rend nativement)* | natif | texte diffable, zéro binaire, revue en PR |
+| BPMN 2.0 | `.bpmn` (XML standard OMG) | `bpmn-io.vs-code-bpmn-io` | Non (aperçu dans l'IDE seulement) | vrai BPMN 2.0, importable Camunda Modeler / bizagi |
+| Retouche visuelle libre | `.drawio.svg` | `hediet.vscode-drawio` | Oui (c'est un SVG) | si besoin d'un export image propre pour un rapport |
 
 Les deux processus BPMN sont fournis comme fichiers éditables :
 
