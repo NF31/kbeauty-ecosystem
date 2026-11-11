@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="defs_Process_Diagnostic"
+                  targetNamespace="http://kbeauty.local/bpmn">
+  <bpmn:collaboration id="collab_Process_Diagnostic">
+    <bpmn:participant id="Pool_Diagnostic" name="Diagnostic de peau - ecosysteme kbeauty" processRef="Process_Diagnostic" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_Diagnostic" name="Diagnostic de peau connecte au panier" isExecutable="false">
+    <bpmn:laneSet id="laneSet_Process_Diagnostic">
+      <bpmn:lane id="LaneD_Client" name="Client (navigateur)">
+        <bpmn:flowNodeRef>EvD_Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>TaskD_Form</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EvD_End401</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>TaskD_Cart</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EvD_EndOk</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="LaneD_Shop" name="kbeauty-shop (Laravel)">
+        <bpmn:flowNodeRef>TaskD_Validate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>TaskD_Call</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>TaskD_Render</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="LaneD_AiCore" name="kbeauty-ai-core-service (Spring Boot)">
+        <bpmn:flowNodeRef>GwD_Auth</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GwD_Photo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>TaskD_Persist</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EvD_Publish</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="LaneD_Ext" name="Services externes (Claude, Voyage AI)">
+        <bpmn:flowNodeRef>TaskD_Vision</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>TaskD_Embed</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="LaneD_Async" name="Consumer RabbitMQ (Laravel)">
+        <bpmn:flowNodeRef>EvD_MsgStart</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>TaskD_Consume</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>GwD_Contract</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EvD_EndLog</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EvD_EndNack</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="EvD_Start" name="Ouvre /diagnostic-peau">
+      <bpmn:outgoing>g1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="TaskD_Form" name="Choisir type de peau,
+envoyer une photo">
+      <bpmn:incoming>g1</bpmn:incoming>
+      <bpmn:outgoing>g2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="TaskD_Validate" name="Valider (image, max 8 Mo),
+throttle 3/60 min">
+      <bpmn:incoming>g2</bpmn:incoming>
+      <bpmn:outgoing>g3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="TaskD_Call" name="POST /diagnostics/analyze
++ X-Internal-Api-Key">
+      <bpmn:incoming>g3</bpmn:incoming>
+      <bpmn:outgoing>g4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GwD_Auth" name="Cle interne
+valide ?">
+      <bpmn:incoming>g4</bpmn:incoming>
+      <bpmn:outgoing>g5</bpmn:outgoing>
+      <bpmn:outgoing>g6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EvD_End401" name="401, erreur affichee">
+      <bpmn:incoming>g5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="TaskD_Vision" name="Analyse vision
+(image en memoire)">
+      <bpmn:incoming>g6</bpmn:incoming>
+      <bpmn:outgoing>g7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GwD_Photo" name="Photo de
+visage exploitable ?">
+      <bpmn:incoming>g7</bpmn:incoming>
+      <bpmn:outgoing>g8</bpmn:outgoing>
+      <bpmn:outgoing>g9</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="TaskD_Embed" name="Embedding requete +
+recherche pgvector">
+      <bpmn:incoming>g8</bpmn:incoming>
+      <bpmn:outgoing>g10</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="TaskD_Persist" name="Persister scores anonymises
++ ids produits (jamais la photo)">
+      <bpmn:incoming>g9</bpmn:incoming>
+      <bpmn:incoming>g10</bpmn:incoming>
+      <bpmn:outgoing>g11</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:intermediateThrowEvent id="EvD_Publish" name="Publier diagnostic.created
+(RabbitMQ)">
+      <bpmn:incoming>g11</bpmn:incoming>
+      <bpmn:outgoing>g12</bpmn:outgoing>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:serviceTask id="TaskD_Render" name="Rendre la page Inertia :
+analyse + produits">
+      <bpmn:incoming>g12</bpmn:incoming>
+      <bpmn:outgoing>g13</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="TaskD_Cart" name="Ajouter une routine
+au panier">
+      <bpmn:incoming>g13</bpmn:incoming>
+      <bpmn:outgoing>g14</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EvD_EndOk" name="Panier peuple,
+tunnel d&#x27;achat">
+      <bpmn:incoming>g14</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="EvD_MsgStart" name="Message diagnostic.created
+recu (RabbitMQ)">
+      <bpmn:outgoing>g15</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="TaskD_Consume" name="Valider le message
+contre le JSON Schema">
+      <bpmn:incoming>g15</bpmn:incoming>
+      <bpmn:outgoing>g16</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="GwD_Contract" name="Contrat
+respecte ?">
+      <bpmn:incoming>g16</bpmn:incoming>
+      <bpmn:outgoing>g17</bpmn:outgoing>
+      <bpmn:outgoing>g18</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EvD_EndLog" name="Log info,
+ack">
+      <bpmn:incoming>g17</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EvD_EndNack" name="Log warning,
+nack sans requeue">
+      <bpmn:incoming>g18</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="g1" sourceRef="EvD_Start" targetRef="TaskD_Form" />
+    <bpmn:sequenceFlow id="g2" sourceRef="TaskD_Form" targetRef="TaskD_Validate" />
+    <bpmn:sequenceFlow id="g3" sourceRef="TaskD_Validate" targetRef="TaskD_Call" />
+    <bpmn:sequenceFlow id="g4" sourceRef="TaskD_Call" targetRef="GwD_Auth" />
+    <bpmn:sequenceFlow id="g5" sourceRef="GwD_Auth" targetRef="EvD_End401" name="non" />
+    <bpmn:sequenceFlow id="g6" sourceRef="GwD_Auth" targetRef="TaskD_Vision" name="oui" />
+    <bpmn:sequenceFlow id="g7" sourceRef="TaskD_Vision" targetRef="GwD_Photo" />
+    <bpmn:sequenceFlow id="g8" sourceRef="GwD_Photo" targetRef="TaskD_Embed" name="oui" />
+    <bpmn:sequenceFlow id="g9" sourceRef="GwD_Photo" targetRef="TaskD_Persist" name="non (pas de matching)" />
+    <bpmn:sequenceFlow id="g10" sourceRef="TaskD_Embed" targetRef="TaskD_Persist" />
+    <bpmn:sequenceFlow id="g11" sourceRef="TaskD_Persist" targetRef="EvD_Publish" />
+    <bpmn:sequenceFlow id="g12" sourceRef="EvD_Publish" targetRef="TaskD_Render" />
+    <bpmn:sequenceFlow id="g13" sourceRef="TaskD_Render" targetRef="TaskD_Cart" />
+    <bpmn:sequenceFlow id="g14" sourceRef="TaskD_Cart" targetRef="EvD_EndOk" />
+    <bpmn:sequenceFlow id="g15" sourceRef="EvD_MsgStart" targetRef="TaskD_Consume" />
+    <bpmn:sequenceFlow id="g16" sourceRef="TaskD_Consume" targetRef="GwD_Contract" />
+    <bpmn:sequenceFlow id="g17" sourceRef="GwD_Contract" targetRef="EvD_EndLog" name="oui" />
+    <bpmn:sequenceFlow id="g18" sourceRef="GwD_Contract" targetRef="EvD_EndNack" name="non" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="diagram_Process_Diagnostic">
+    <bpmndi:BPMNPlane id="plane_Process_Diagnostic" bpmnElement="collab_Process_Diagnostic">
+      <bpmndi:BPMNShape id="Pool_Diagnostic_di" bpmnElement="Pool_Diagnostic" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="2750" height="750" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="LaneD_Client_di" bpmnElement="LaneD_Client" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="2720" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="LaneD_Shop_di" bpmnElement="LaneD_Shop" isHorizontal="true">
+        <dc:Bounds x="190" y="230" width="2720" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="LaneD_AiCore_di" bpmnElement="LaneD_AiCore" isHorizontal="true">
+        <dc:Bounds x="190" y="380" width="2720" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="LaneD_Ext_di" bpmnElement="LaneD_Ext" isHorizontal="true">
+        <dc:Bounds x="190" y="530" width="2720" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="LaneD_Async_di" bpmnElement="LaneD_Async" isHorizontal="true">
+        <dc:Bounds x="190" y="680" width="2720" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EvD_Start_di" bpmnElement="EvD_Start">
+        <dc:Bounds x="267" y="137" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="247" y="177" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TaskD_Form_di" bpmnElement="TaskD_Form">
+        <dc:Bounds x="420" y="115" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TaskD_Validate_di" bpmnElement="TaskD_Validate">
+        <dc:Bounds x="610" y="265" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TaskD_Call_di" bpmnElement="TaskD_Call">
+        <dc:Bounds x="800" y="265" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwD_Auth_di" bpmnElement="GwD_Auth">
+        <dc:Bounds x="1020" y="430" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1000" y="484" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EvD_End401_di" bpmnElement="EvD_End401">
+        <dc:Bounds x="1027" y="137" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1007" y="177" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TaskD_Vision_di" bpmnElement="TaskD_Vision">
+        <dc:Bounds x="1180" y="565" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwD_Photo_di" bpmnElement="GwD_Photo">
+        <dc:Bounds x="1400" y="430" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1380" y="484" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TaskD_Embed_di" bpmnElement="TaskD_Embed">
+        <dc:Bounds x="1560" y="565" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TaskD_Persist_di" bpmnElement="TaskD_Persist">
+        <dc:Bounds x="1750" y="415" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EvD_Publish_di" bpmnElement="EvD_Publish">
+        <dc:Bounds x="1977" y="437" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1957" y="477" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TaskD_Render_di" bpmnElement="TaskD_Render">
+        <dc:Bounds x="2130" y="265" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TaskD_Cart_di" bpmnElement="TaskD_Cart">
+        <dc:Bounds x="2320" y="115" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EvD_EndOk_di" bpmnElement="EvD_EndOk">
+        <dc:Bounds x="2547" y="137" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2527" y="177" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EvD_MsgStart_di" bpmnElement="EvD_MsgStart">
+        <dc:Bounds x="1977" y="737" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1957" y="777" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TaskD_Consume_di" bpmnElement="TaskD_Consume">
+        <dc:Bounds x="2130" y="715" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GwD_Contract_di" bpmnElement="GwD_Contract">
+        <dc:Bounds x="2350" y="730" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2330" y="784" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EvD_EndLog_di" bpmnElement="EvD_EndLog">
+        <dc:Bounds x="2547" y="737" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2527" y="777" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EvD_EndNack_di" bpmnElement="EvD_EndNack">
+        <dc:Bounds x="2737" y="737" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2717" y="777" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="g1_di" bpmnElement="g1">
+        <di:waypoint x="303" y="155" />
+        <di:waypoint x="420" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="g2_di" bpmnElement="g2">
+        <di:waypoint x="530" y="155" />
+        <di:waypoint x="590" y="155" />
+        <di:waypoint x="590" y="305" />
+        <di:waypoint x="610" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="g3_di" bpmnElement="g3">
+        <di:waypoint x="720" y="305" />
+        <di:waypoint x="800" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="g4_di" bpmnElement="g4">
+        <di:waypoint x="910" y="305" />
+        <di:waypoint x="1000" y="305" />
+        <di:waypoint x="1000" y="455" />
+        <di:waypoint x="1020" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="g5_di" bpmnElement="g5">
+        <di:waypoint x="1070" y="455" />
+        <di:waypoint x="1007" y="455" />
+        <di:waypoint x="1007" y="155" />
+        <di:waypoint x="1027" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="g6_di" bpmnElement="g6">
+        <di:waypoint x="1070" y="455" />
+        <di:waypoint x="1160" y="455" />
+        <di:waypoint x="1160" y="605" />
+        <di:waypoint x="1180" y="605" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="g7_di" bpmnElement="g7">
+        <di:waypoint x="1290" y="605" />
+        <di:waypoint x="1380" y="605" />
+        <di:waypoint x="1380" y="455" />
+        <di:waypoint x="1400" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="g8_di" bpmnElement="g8">
+        <di:waypoint x="1450" y="455" />
+        <di:waypoint x="1540" y="455" />
+        <di:waypoint x="1540" y="605" />
+        <di:waypoint x="1560" y="605" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="g9_di" bpmnElement="g9">
+        <di:waypoint x="1450" y="455" />
+        <di:waypoint x="1750" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="g10_di" bpmnElement="g10">
+        <di:waypoint x="1670" y="605" />
+        <di:waypoint x="1730" y="605" />
+        <di:waypoint x="1730" y="455" />
+        <di:waypoint x="1750" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="g11_di" bpmnElement="g11">
+        <di:waypoint x="1860" y="455" />
+        <di:waypoint x="1977" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="g12_di" bpmnElement="g12">
+        <di:waypoint x="2013" y="455" />
+        <di:waypoint x="2110" y="455" />
+        <di:waypoint x="2110" y="305" />
+        <di:waypoint x="2130" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="g13_di" bpmnElement="g13">
+        <di:waypoint x="2240" y="305" />
+        <di:waypoint x="2300" y="305" />
+        <di:waypoint x="2300" y="155" />
+        <di:waypoint x="2320" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="g14_di" bpmnElement="g14">
+        <di:waypoint x="2430" y="155" />
+        <di:waypoint x="2547" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="g15_di" bpmnElement="g15">
+        <di:waypoint x="2013" y="755" />
+        <di:waypoint x="2130" y="755" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="g16_di" bpmnElement="g16">
+        <di:waypoint x="2240" y="755" />
+        <di:waypoint x="2350" y="755" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="g17_di" bpmnElement="g17">
+        <di:waypoint x="2400" y="755" />
+        <di:waypoint x="2547" y="755" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="g18_di" bpmnElement="g18">
+        <di:waypoint x="2400" y="755" />
+        <di:waypoint x="2737" y="755" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

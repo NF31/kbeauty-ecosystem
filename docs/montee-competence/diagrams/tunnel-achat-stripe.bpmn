@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="defs_Process_Checkout"
+                  targetNamespace="http://kbeauty.local/bpmn">
+  <bpmn:collaboration id="collab_Process_Checkout">
+    <bpmn:participant id="Pool_Checkout" name="Commande client - kbeauty-shop" processRef="Process_Checkout" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_Checkout" name="Tunnel d&#x27;achat et paiement Stripe" isExecutable="false">
+    <bpmn:laneSet id="laneSet_Process_Checkout">
+      <bpmn:lane id="Lane_Client" name="Client (navigateur)">
+        <bpmn:flowNodeRef>Ev_Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Address</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Review</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Confirm</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Ev_EndOk</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_App" name="Application Laravel (Inertia)">
+        <bpmn:flowNodeRef>Task_PlaceOrder</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CreateSession</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_VerifySig</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_Dedup</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Ev_EndDup</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Stripe" name="Stripe">
+        <bpmn:flowNodeRef>Task_StripeProcess</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Ev_Webhook</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Worker" name="Worker asynchrone (Horizon)">
+        <bpmn:flowNodeRef>Task_Job</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Fulfil</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Ev_Start" name="Panier pret,
+clic Commander">
+      <bpmn:outgoing>f1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_Address" name="Saisir ou choisir
+les adresses">
+      <bpmn:incoming>f1</bpmn:incoming>
+      <bpmn:outgoing>f2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_Review" name="Valider le
+recapitulatif (Payer)">
+      <bpmn:incoming>f2</bpmn:incoming>
+      <bpmn:outgoing>f3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_PlaceOrder" name="Creer Order + Payment
+(statut pending)">
+      <bpmn:incoming>f3</bpmn:incoming>
+      <bpmn:outgoing>f4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_CreateSession" name="Creer Checkout Session
+Stripe (ui_mode elements)">
+      <bpmn:incoming>f4</bpmn:incoming>
+      <bpmn:outgoing>f5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_Confirm" name="Confirmer le paiement
+(Payment Element)">
+      <bpmn:incoming>f5</bpmn:incoming>
+      <bpmn:outgoing>f6</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_StripeProcess" name="Autoriser la carte,
+creer le PaymentIntent">
+      <bpmn:incoming>f6</bpmn:incoming>
+      <bpmn:outgoing>f7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:intermediateThrowEvent id="Ev_Webhook" name="checkout.session.completed">
+      <bpmn:incoming>f7</bpmn:incoming>
+      <bpmn:outgoing>f8</bpmn:outgoing>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:serviceTask id="Task_VerifySig" name="Verifier la signature,
+persister webhook_call">
+      <bpmn:incoming>f8</bpmn:incoming>
+      <bpmn:outgoing>f9</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gw_Dedup" name="Event deja
+traite avec succes ?">
+      <bpmn:incoming>f9</bpmn:incoming>
+      <bpmn:outgoing>f10</bpmn:outgoing>
+      <bpmn:outgoing>f11</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_Job" name="Order=paid, Payment=succeeded,
+repointer PaymentIntent">
+      <bpmn:incoming>f10</bpmn:incoming>
+      <bpmn:outgoing>f12</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Fulfil" name="Email confirmation, decrement
+stock, creer Shipment">
+      <bpmn:incoming>f12</bpmn:incoming>
+      <bpmn:outgoing>f13</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="Ev_EndOk" name="Commande payee,
+page confirmation">
+      <bpmn:incoming>f13</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="Ev_EndDup" name="Ignore (idempotence)">
+      <bpmn:incoming>f11</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="f1" sourceRef="Ev_Start" targetRef="Task_Address" />
+    <bpmn:sequenceFlow id="f2" sourceRef="Task_Address" targetRef="Task_Review" />
+    <bpmn:sequenceFlow id="f3" sourceRef="Task_Review" targetRef="Task_PlaceOrder" />
+    <bpmn:sequenceFlow id="f4" sourceRef="Task_PlaceOrder" targetRef="Task_CreateSession" />
+    <bpmn:sequenceFlow id="f5" sourceRef="Task_CreateSession" targetRef="Task_Confirm" />
+    <bpmn:sequenceFlow id="f6" sourceRef="Task_Confirm" targetRef="Task_StripeProcess" />
+    <bpmn:sequenceFlow id="f7" sourceRef="Task_StripeProcess" targetRef="Ev_Webhook" />
+    <bpmn:sequenceFlow id="f8" sourceRef="Ev_Webhook" targetRef="Task_VerifySig" />
+    <bpmn:sequenceFlow id="f9" sourceRef="Task_VerifySig" targetRef="Gw_Dedup" />
+    <bpmn:sequenceFlow id="f10" sourceRef="Gw_Dedup" targetRef="Task_Job" name="non" />
+    <bpmn:sequenceFlow id="f11" sourceRef="Gw_Dedup" targetRef="Ev_EndDup" name="oui" />
+    <bpmn:sequenceFlow id="f12" sourceRef="Task_Job" targetRef="Task_Fulfil" />
+    <bpmn:sequenceFlow id="f13" sourceRef="Task_Fulfil" targetRef="Ev_EndOk" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="diagram_Process_Checkout">
+    <bpmndi:BPMNPlane id="plane_Process_Checkout" bpmnElement="collab_Process_Checkout">
+      <bpmndi:BPMNShape id="Pool_Checkout_di" bpmnElement="Pool_Checkout" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="2560" height="600" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Client_di" bpmnElement="Lane_Client" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="2530" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_App_di" bpmnElement="Lane_App" isHorizontal="true">
+        <dc:Bounds x="190" y="230" width="2530" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Stripe_di" bpmnElement="Lane_Stripe" isHorizontal="true">
+        <dc:Bounds x="190" y="380" width="2530" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Worker_di" bpmnElement="Lane_Worker" isHorizontal="true">
+        <dc:Bounds x="190" y="530" width="2530" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ev_Start_di" bpmnElement="Ev_Start">
+        <dc:Bounds x="267" y="137" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="247" y="177" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Address_di" bpmnElement="Task_Address">
+        <dc:Bounds x="420" y="115" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Review_di" bpmnElement="Task_Review">
+        <dc:Bounds x="610" y="115" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PlaceOrder_di" bpmnElement="Task_PlaceOrder">
+        <dc:Bounds x="800" y="265" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CreateSession_di" bpmnElement="Task_CreateSession">
+        <dc:Bounds x="990" y="265" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Confirm_di" bpmnElement="Task_Confirm">
+        <dc:Bounds x="1180" y="115" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_StripeProcess_di" bpmnElement="Task_StripeProcess">
+        <dc:Bounds x="1370" y="415" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ev_Webhook_di" bpmnElement="Ev_Webhook">
+        <dc:Bounds x="1597" y="437" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1577" y="477" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_VerifySig_di" bpmnElement="Task_VerifySig">
+        <dc:Bounds x="1750" y="265" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gw_Dedup_di" bpmnElement="Gw_Dedup">
+        <dc:Bounds x="1970" y="280" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1950" y="334" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Job_di" bpmnElement="Task_Job">
+        <dc:Bounds x="2130" y="565" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Fulfil_di" bpmnElement="Task_Fulfil">
+        <dc:Bounds x="2320" y="565" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ev_EndOk_di" bpmnElement="Ev_EndOk">
+        <dc:Bounds x="2547" y="137" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2527" y="177" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Ev_EndDup_di" bpmnElement="Ev_EndDup">
+        <dc:Bounds x="2167" y="287" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2147" y="327" width="76" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="f1_di" bpmnElement="f1">
+        <di:waypoint x="303" y="155" />
+        <di:waypoint x="420" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f2_di" bpmnElement="f2">
+        <di:waypoint x="530" y="155" />
+        <di:waypoint x="610" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f3_di" bpmnElement="f3">
+        <di:waypoint x="720" y="155" />
+        <di:waypoint x="780" y="155" />
+        <di:waypoint x="780" y="305" />
+        <di:waypoint x="800" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f4_di" bpmnElement="f4">
+        <di:waypoint x="910" y="305" />
+        <di:waypoint x="990" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f5_di" bpmnElement="f5">
+        <di:waypoint x="1100" y="305" />
+        <di:waypoint x="1160" y="305" />
+        <di:waypoint x="1160" y="155" />
+        <di:waypoint x="1180" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f6_di" bpmnElement="f6">
+        <di:waypoint x="1290" y="155" />
+        <di:waypoint x="1350" y="155" />
+        <di:waypoint x="1350" y="455" />
+        <di:waypoint x="1370" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f7_di" bpmnElement="f7">
+        <di:waypoint x="1480" y="455" />
+        <di:waypoint x="1597" y="455" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f8_di" bpmnElement="f8">
+        <di:waypoint x="1633" y="455" />
+        <di:waypoint x="1730" y="455" />
+        <di:waypoint x="1730" y="305" />
+        <di:waypoint x="1750" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f9_di" bpmnElement="f9">
+        <di:waypoint x="1860" y="305" />
+        <di:waypoint x="1970" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f10_di" bpmnElement="f10">
+        <di:waypoint x="2020" y="305" />
+        <di:waypoint x="2110" y="305" />
+        <di:waypoint x="2110" y="605" />
+        <di:waypoint x="2130" y="605" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f11_di" bpmnElement="f11">
+        <di:waypoint x="2020" y="305" />
+        <di:waypoint x="2167" y="305" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f12_di" bpmnElement="f12">
+        <di:waypoint x="2240" y="605" />
+        <di:waypoint x="2320" y="605" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f13_di" bpmnElement="f13">
+        <di:waypoint x="2430" y="605" />
+        <di:waypoint x="2527" y="605" />
+        <di:waypoint x="2527" y="155" />
+        <di:waypoint x="2547" y="155" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
