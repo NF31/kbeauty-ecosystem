@@ -1,14 +1,15 @@
 # kbeauty-ecosystem
 
 Infrastructure commune (Docker Compose) pour les microservices de montee en competence
-lies au projet Kbeauty (voir le repo principal kbeauty-shop, dossier docs/montee-competence/).
+lies au projet Kbeauty (boutique `kbeauty-shop`, depot prive). Le dossier technique
+complet est dans [docs/montee-competence/](docs/montee-competence/README.md).
 
 Ne contient pas de code applicatif : chaque microservice (Spring Boot, Scrapy,
 PHP natif, NestJS, Go) vit dans son propre repo, clone a cote de celui-ci sous
 ~/projects/. Un pont
 Next.js avait ete envisage au depart pour la page diagnostic, mais abandonne
 des la Phase 3 au profit d'Inertia (integre au monolithe Laravel) - jamais
-cree, voir kbeauty-shop/docs/montee-competence/09-phase3-diagnostic-inertia.md.
+cree, voir [09-phase3-diagnostic-inertia.md](docs/montee-competence/09-phase3-diagnostic-inertia.md).
 
 ## Services
 
@@ -39,9 +40,9 @@ avec seulement les droits dont elle a besoin :
 
 Mots de passe de developpement par defaut, a fournir en variables
 d'environnement en production (voir l'en-tete du script). Integration
-detaillee : `kbeauty-shop/docs/montee-competence/20-integration-sav-rabbitmq.md`
-(SAV), `21-notifications-service.md` (notifications), `22-mdm-golden-record.md`
-(MDM).
+detaillee : [20-integration-sav-rabbitmq.md](docs/montee-competence/20-integration-sav-rabbitmq.md)
+(SAV), [21-notifications-service.md](docs/montee-competence/21-notifications-service.md) (notifications),
+[22-mdm-golden-record.md](docs/montee-competence/22-mdm-golden-record.md) (MDM).
 
 `guest` (droits complets) sert encore a kbeauty-ai-core-service : lui creer
 un compte limite, puis supprimer `guest`.
