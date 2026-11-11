@@ -130,21 +130,21 @@ l'identifiant de chaque événement déjà traité, avec une contrainte d'unicit
 
 | Fichier | Rôle | Statut |
 |---|---|---|
-| `src/main.ts`, `src/app.module.ts` | Scaffold NestJS de base | ✅ fait (`nest new`) |
-| `.github/workflows/gitleaks.yml`, `ci.yml` | CI (scan secrets, lint/test/build) | ✅ fait |
-| `src/notifications/notifications.consumer.ts` | Consumer AMQP (`amqp-connection-manager`/`amqplib`, pas `@nestjs/microservices` — voir §3.2) | ✅ fait, vérifié en conditions réelles |
-| `src/notifications/templates.ts` | Template email newsletter | ✅ fait (un seul événement pour l'instant) |
-| `src/notifications/dedup.service.ts` | Déduplication (`node:sqlite`) | ✅ fait |
-| `src/notifications/contract-validator.service.ts` | Validation Ajv (draft 2020-12) | ✅ fait, 4 tests |
-| `src/notifications/email.service.ts` | Envoi Resend (journalise si pas de clé API) | ✅ fait, pas encore teste avec un vrai envoi |
-| `contracts/rabbitmq/newsletter-subscription-requested.schema.json` | Contrat du premier événement | ✅ fait |
+| `src/main.ts`, `src/app.module.ts` | Scaffold NestJS de base | fait (`nest new`) |
+| `.github/workflows/gitleaks.yml`, `ci.yml` | CI (scan secrets, lint/test/build) | fait |
+| `src/notifications/notifications.consumer.ts` | Consumer AMQP (`amqp-connection-manager`/`amqplib`, pas `@nestjs/microservices` — voir §3.2) | fait, vérifié en conditions réelles |
+| `src/notifications/templates.ts` | Template email newsletter | fait (un seul événement pour l'instant) |
+| `src/notifications/dedup.service.ts` | Déduplication (`node:sqlite`) | fait |
+| `src/notifications/contract-validator.service.ts` | Validation Ajv (draft 2020-12) | fait, 4 tests |
+| `src/notifications/email.service.ts` | Envoi Resend (journalise si pas de clé API) | fait, pas encore teste avec un vrai envoi |
+| `contracts/rabbitmq/newsletter-subscription-requested.schema.json` | Contrat du premier événement | fait |
 
 ### kbeauty-shop (producteur, extension de l'outbox existant)
 
 | Fichier | Rôle | Statut |
 |---|---|---|
-| `app/Infrastructure/Rabbitmq/NewsletterSubscriptionRequestedPayload.php` | Corps de l'événement, conforme au contrat partagé | ✅ fait (PR #324), vérifié en conditions réelles |
-| `app/Http/Controllers/Storefront/NewsletterController.php` | Publie l'événement dans l'outbox si `NOTIFICATIONS_INTEGRATION_ENABLED` ; envoi direct conservé en parallèle (§3.3) | ✅ fait (PR #324) |
+| `app/Infrastructure/Rabbitmq/NewsletterSubscriptionRequestedPayload.php` | Corps de l'événement, conforme au contrat partagé | fait (PR #324), vérifié en conditions réelles |
+| `app/Http/Controllers/Storefront/NewsletterController.php` | Publie l'événement dans l'outbox si `NOTIFICATIONS_INTEGRATION_ENABLED` ; envoi direct conservé en parallèle (§3.3) | fait (PR #324) |
 
 ## 5. Lancer en local
 

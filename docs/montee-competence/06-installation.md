@@ -8,7 +8,7 @@ order: 6
 
 # 6. Manuel d'installation des composants (WSL Ubuntu)
 
-## 📂 A. Infrastructure Commune : `docker-compose.yml`
+## A. Infrastructure Commune : `docker-compose.yml`
 
 ```yaml
 version: '3.8'
@@ -78,7 +78,7 @@ docker compose up -d
 docker compose ps
 ```
 
-## 📁 B. Configuration du Micro-service Java Spring Boot (`pom.xml`)
+## B. Configuration du Micro-service Java Spring Boot (`pom.xml`)
 
 `~/projects/kbeauty-ai-core-service` — dépendances réellement utilisées aujourd'hui (2026-08-10, après les Axes 1 et 2 hors programme). L'OpenAPI/Springdoc et Lombok, envisagés au départ, n'ont toujours pas été ajoutés (dernier point restant de la Phase 2, voir [`ROADMAP.md`](ROADMAP.md)) :
 
@@ -156,7 +156,7 @@ mkdir -p src/main/java/com/kbeauty/aicore src/main/resources
 mvn clean compile
 ```
 
-## 📁 C. Configuration du Robot Scrapy Python
+## C. Configuration du Robot Scrapy Python
 
 Repo réel : `kbeauty-ingredients-scraper` (module Python `ingredients_scraper`, pas `core_scraper`) — voir [`10-phase4-scraping-cassandra.md`](10-phase4-scraping-cassandra.md) pour le détail de ce qui a été construit dessus.
 
@@ -170,6 +170,6 @@ scrapy startproject ingredients_scraper .
 
 `scrapy-playwright`, `pika` et `python-dotenv` envisagés au départ ne sont pas encore installés — à ajouter quand la Phase 4 avancée (JS rendering, social listening) démarrera réellement (dernier point non coché de la Phase 4).
 
-## 📁 D. Interface Next.js — abandonnée pour la page diagnostic
+## D. Interface Next.js — abandonnée pour la page diagnostic
 
 > Décision (2026-08-02, voir [`ROADMAP.md`](ROADMAP.md) et [`09-phase3-diagnostic-inertia.md`](09-phase3-diagnostic-inertia.md)) : la page diagnostic utilise Inertia (React déjà intégré au monolithe Laravel), pas un frontend Next.js séparé — un pont Sanctum + Next.js aurait ajouté de la complexité sans bénéfice produit pour cette fonctionnalité précise. Next.js reste une option pour un futur découplage frontend (Phase 6, dashboard analytics) ou un projet dédié si l'objectif est de pratiquer Next.js pour lui-même — pas de commande d'installation à date, cette section n'est plus d'actualité pour le diagnostic peau.
